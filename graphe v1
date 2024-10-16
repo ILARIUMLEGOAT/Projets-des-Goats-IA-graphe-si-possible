@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import networkx as nx
+
+# Paramètres de la simulation
+N = 100  # Nombre de personnes
+p_infection = 0.3  # Probabilité d'infection
+p_recovery = 0.1  # Probabilité de guérison
+steps = 50  # Nombre de pas de temps
+
+# Création d'un graphe
+G = nx.erdos_renyi_graph(N, 0.1)
+
+# État initial des nœuds (0: susceptible, 1: infected, 2: recovered)
+state = np.zeros(N)
+initial_infected = np.random.choice(N, size=1, replace=False)
+state[initial_infected] = 1
+
+# Stockage des résultats pour la visualisation
+susceptible_counts = []
+infected_counts = []
+recovered_counts = []
+
+# Simulation
+for _ in range(steps):
+    new_state = state.copy()
+    
+    # Comptage des états
+    susceptible_counts.append(np.sum(state == 0))
+    infected_counts.append(np.sum(state == 1))
+    recovered_counts.append(np.sum(state == 2))
+    
+    for node in range(N):
+        if state[node] == 1:  # Si la personne est infectée
+            # Infection des voisins
+            for neighbor in G.neighbors(node):
+                if state[neighbor] == 0:  # Si le voisin est susceptible
+                    if np.random.rand() < p_infection:
+                        new_state[neighbor] = 1
+            
+            # Guérison
+            if np.random.rand() < p_recovery:
+                new_state[node] = 2
+
+    state = new_state
+
+# Visualisation des résultats
+plt.figure(figsize=(10, 6))
+plt.plot(susceptible_counts, label='Susceptibles', color='blue')
+plt.plot(infected_counts, label='Infectés', color='red')
+plt.plot(recovered_counts, label='Rétablis', color='green')
+plt.title('Propagation d\'un virus dans un graphe')
+plt.xlabel('Temps')
+plt.ylabel('Nombre de personnes')
+plt.legend()
+plt.grid()
+plt.show()
+
+
